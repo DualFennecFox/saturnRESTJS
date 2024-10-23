@@ -1,0 +1,16 @@
+{
+  "name": "saturnrest",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "dotenv-flow": "^4.1.0",
+    "express": "^4.21.1",
+    "postgres": "^3.4.4"
+  }
+}
