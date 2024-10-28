@@ -13,46 +13,66 @@ async function getcolumns(table) {
     return columns
 }
 
-async function autoinsert(query, table) {
+function listValues(values) {
+    let num = ""
+    for (let i = 0; i < values.length; i++) {
+        num += `$${i + 1}, `
+
+    }
+    num = num.slice(0, -2)
+    return num
+}
+
+async function autoinsert(values, table) {
     let columns = await getcolumns(table)
+    let parameters = listValues(values)
     const insertquery = `INSERT INTO ${table}
     (${columns})
     VALUES 
-    ${query}`
-    
-    let res = await pool.query(insertquery)
-    pool.end()
+    (${parameters});`
+    console.log(insertquery)
+
+    let res = await pool.query(insertquery, values)
     return res
 }
 
-async function insert(columns, query, table) {
-
+async function insert(columns, values, table) {
+    let parameters = listValues(values)
     const insertquery = `INSERT INTO ${table}
     (${columns})
     VALUES 
-    (${query})`
+    (${parameters});`
 
-    let res = await pool.query(insertquery)
-    pool.end()
+    let res = await pool.query(insertquery, values)
     return res
 }
 
-async function select(columns, table) {
-    const selectquery = `SELECT ${columns} FROM ${table}`
+async function select(columns, table, limit = null) {
 
-    let res = await pool.query(selectquery)
-    pool.end()
+    const selectquery = `SELECT ${columns} FROM ${table} ${limit ? "ORDER BY id DESC" : ""} LIMIT $1 `;
+
+    let res = await pool.query(selectquery, [limit])
     return res.rows
 }
 
+async function selectwhere(columns, table, from, values, limit = null) {
+    let whereq = ""
+    for (let i = 0; i < from.length; i++) {
+        whereq += `${from[i]} = $${i+2} AND `
+        
+    }
+    whereq = whereq.slice(0, -4)
 
-
-
-
+    const selectquery = `SELECT ${columns} FROM ${table} WHERE ${whereq} ${limit ? "ORDER BY id DESC" : ""} LIMIT $1 `;
+    let res = await pool.query(selectquery, [limit, ...values])
+    
+    return res.rows
+}
 
 module.exports = {
     getcolumns,
     autoinsert,
     insert,
-    select
+    select,
+    selectwhere
 }
