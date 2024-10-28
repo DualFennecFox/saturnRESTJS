@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<header>
+    <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@3.0/dist/css/pretty-print-json.css>
+    <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@3.0/dist/pretty-print-json.min.js></script>
+</header>
+
+<body>
+    <form onsubmit="callREST(event)">
+        <label for="host">REST API host:</label><br>
+        <input type="text" id="host" name="host" value="http://localhost:3000"><br><br>
+        <label for="depsite">Sitio de Salida:</label><br>
+        <input type="text" id="depsite" name="depsite" value=""><br>
+        <label for="arrsite">Sitio de llegada:</label><br>
+        <input type="text" id="arrsite" name="arrsite" value=""><br>
+        <label for="departure">Hora de salida:</label><br>
+        <input type="time" id="departure" name="departure" value=""><br>
+        <label for="arrival">Hora de llegada:</label><br>
+        <input type="time" id="arrival" name="arrival" value=""><br>
+        <label for="price">Precio:</label><br>
+        <input type="text" id="price" name="price" value=""><br>
+        <label for="bus">Empresa:</label><br>
+        <select name="bus" id="bus">
+            <option value="aeroexp">Aeroexpresos Ejecutivos</option>
+            <option value="flamingo">Flamingo</option>
+        </select><br>
+        <label for="depdate">Dia de Salida:</label><br>
+        <input type="date" id="depdate" name="depdate" value=""><br><br>
+        <input type="submit" value="Submit">
+    </form>
+    <br><br>
+    <form onsubmit="RESET(event)">
+        <label for="host">REST API host:</label><br>
+        <input type="text" id="host" name="host" value="http://localhost:3000"><br><br>
+        <input type="submit" value="RESET DB">
+    </form>
+    <pre id=account class=json-container></pre>
+
+    <script>
+        function callREST(event) {
+            event.preventDefault()
+
+            const form = event.target
+            const formData = new FormData(form)
+            const depsite = formData.get("depsite")
+            const arrsite = formData.get("arrsite")
+            const departure = formData.get("departure")
+            const arrival = formData.get("arrival")
+            const price = formData.get("price")
+            const bus = formData.get("bus")
+            const depdate = formData.get("depdate")
+            const url = formData.get("host")
+
+            var xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    let data = JSON.parse(this.responseText)
+                    document.getElementById("account").innerHTML = prettyPrintJson.toHtml(data);
+                }
+            };
+            let json = JSON.stringify({ depsite: depsite, arrsite: arrsite, departure: departure, arrival: arrival, price: price, bus: bus, depdate: depdate })
+            xhttp.open("POST", `${url}/api/trips`, true);
+            xhttp.setRequestHeader('Accept', 'application/json')
+            xhttp.setRequestHeader('Content-Type', 'application/json')
+            xhttp.send(json);
+        }
+        function RESET(event) {
+            event.preventDefault()
+            const form = event.target
+            const formData = new FormData(form)
+            const url = formData.get("host")
+            
+            fetch(`${url}/api/trips`, {
+                method: "DELETE"
+            })
+        }
+    </script>
+</body>
+
+</html>

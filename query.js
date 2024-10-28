@@ -29,11 +29,11 @@ async function autoinsert(values, table) {
     const insertquery = `INSERT INTO ${table}
     (${columns})
     VALUES 
-    (${parameters});`
+    (${parameters}) RETURNING id;`
     console.log(insertquery)
 
     let res = await pool.query(insertquery, values)
-    return res
+    return res.rows
 }
 
 async function insert(columns, values, table) {
@@ -58,15 +58,23 @@ async function select(columns, table, limit = null) {
 async function selectwhere(columns, table, from, values, limit = null) {
     let whereq = ""
     for (let i = 0; i < from.length; i++) {
-        whereq += `${from[i]} = $${i+2} AND `
-        
+        whereq += `${from[i]} = $${i + 2} AND `
+
     }
     whereq = whereq.slice(0, -4)
 
     const selectquery = `SELECT ${columns} FROM ${table} WHERE ${whereq} ${limit ? "ORDER BY id DESC" : ""} LIMIT $1 `;
+    console.log([...values, ...from])
     let res = await pool.query(selectquery, [limit, ...values])
-    
+
     return res.rows
+}
+
+async function truncate(table) {
+    const truncatequery = `TRUNCATE ${table} RESTART IDENTITY CASCADE;`
+    let res = await pool.query(truncatequery)
+
+    return res
 }
 
 module.exports = {
@@ -74,5 +82,6 @@ module.exports = {
     autoinsert,
     insert,
     select,
-    selectwhere
+    selectwhere,
+    truncate
 }

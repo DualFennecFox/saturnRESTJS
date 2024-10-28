@@ -20,7 +20,7 @@ app.get("/api/trips", (req, res) => {
         let from = ['depsite', 'arrsite', 'depdate']
         let parsed = JSON.parse(req.query.q)
         let values = [parsed.from, parsed.to, parsed.date]
-        if (values.some((el) => el == "" )) return
+        if (values.some((el) => el == "")) return
         qCommands.selectwhere("*", "trips", from, values).then(sel => {
             res.send(sel)
         })
@@ -37,8 +37,23 @@ app.get("/api/trips", (req, res) => {
 })
 
 app.post("/api/trips", (req, res) => {
-    let q = [req.body.from, req.body.to, req.body.date]
-    qCommands.autoinsert(q, "trips")
+    let q = [req.body.depsite, req.body.arrsite, req.body.departure, req.body.arrival, req.body.price, req.body.bus, req.body.bus, 5, req.body.depdate]
+    let notInsert = false
+    console.log(q)
+    for (let i = 0; i < q.length; i++) { if (q[i] == undefined || q[i] == '') { notInsert = true; break; }; }
+    if (notInsert) return
+    qCommands.autoinsert(q, "trips").then(sel => {
+        qCommands.selectwhere("*", "trips", ["id"], [sel[0].id]).then((sel) => {
+            res.send(sel)
+        })
+
+    })
+})
+
+app.delete("/api/trips", (req, res) => {
+    qCommands.truncate("trips").then(sel => {
+        res.send(sel)
+    })
 })
 
 let values = []
