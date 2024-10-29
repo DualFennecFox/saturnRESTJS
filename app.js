@@ -15,6 +15,10 @@ app.use("/cdn", express.static("images"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
+app.disable('x-powered-by');
+
+const port = process.env.PORT || process.env.LOCALPORT
+
 app.get("/api/trips", (req, res) => {
     if (req.query?.q) {
         let from = ['depsite', 'arrsite', 'depdate']
@@ -96,7 +100,7 @@ inquirer.default.prompt(questions).then(answers => {
     qCommands.autoinsert(query, "trips")
 });
 */
-app.listen(3000, () => {
+app.listen(port, () => {
     console.log(`Servidor iniciado en http://localhost:3000`)
 })
 
