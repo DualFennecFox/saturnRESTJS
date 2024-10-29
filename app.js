@@ -19,7 +19,7 @@ app.disable('x-powered-by');
 
 const port = process.env.PORT
 
-const url = `https://saturnrest.onrender.com/`; 
+const url = `https://saturnrest.onrender.com`; 
 const interval = 30000;
 
 function reloadWebsite() {
@@ -33,6 +33,10 @@ function reloadWebsite() {
 }
 
 setInterval(reloadWebsite, interval);
+
+app.get("/", (req, res) => {
+    res.send("Hello World!")
+})
 
 app.get("/api/trips", (req, res) => {
     if (req.query?.q) {
