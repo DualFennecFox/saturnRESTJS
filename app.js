@@ -17,7 +17,22 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 app.disable('x-powered-by');
 
-const port = process.env.PORT || process.env.LOCALPORT
+const port = process.env.PORT
+
+const url = `https://saturnrest.onrender.com/`; 
+const interval = 30000;
+
+function reloadWebsite() {
+    fetch(url)
+        .then(response => {
+            console.log(`Reloaded at ${new Date().toISOString()}: Status Code ${response.status}`);
+        }, err => console.error(`Error reloading at ${new Date().toISOString()}:`, error.message))
+        .catch(error => {
+            console.error(`Error reloading at ${new Date().toISOString()}:`, error.message);
+        });
+}
+
+setInterval(reloadWebsite, interval);
 
 app.get("/api/trips", (req, res) => {
     if (req.query?.q) {
