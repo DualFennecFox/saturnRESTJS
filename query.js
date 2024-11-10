@@ -30,7 +30,6 @@ async function autoinsert(values, table) {
     (${columns})
     VALUES 
     (${parameters}) RETURNING id;`
-    console.log(insertquery)
 
     let res = await pool.query(insertquery, values)
     return res.rows
@@ -64,7 +63,6 @@ async function selectwhere(columns, table, from, values, limit = null) {
     whereq = whereq.slice(0, -4)
 
     const selectquery = `SELECT ${columns} FROM ${table} WHERE ${whereq} ${limit ? "ORDER BY id DESC" : ""} LIMIT $1 `;
-    console.log([...values, ...from])
     let res = await pool.query(selectquery, [limit, ...values])
 
     return res.rows
@@ -77,11 +75,33 @@ async function truncate(table) {
     return res
 }
 
+async function selectWhereJoin(arg = '', from = [], values = []) {
+    let whereq = ""
+    if (from.length != 0) {
+        whereq = "WHERE "
+        for (let i = 0; i < from.length; i++) {
+            whereq += `${from[i]} = $${i + 1} AND `
+
+        }
+        whereq = whereq.slice(0, -4)
+    }
+
+    const selQuery = `SELECT tr.*, term.terminal_name, term.image_path
+    FROM trip tr
+    JOIN terminal term ON tr.terminal_id = term.id
+    ${arg}${whereq}`
+
+    let res = await pool.query(selQuery, [...values])
+
+    return res.rows
+}
+
 module.exports = {
     getcolumns,
     autoinsert,
     insert,
     select,
     selectwhere,
-    truncate
+    truncate,
+    selectWhereJoin
 }

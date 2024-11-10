@@ -6,6 +6,7 @@ const cors = require("cors")
 const app = express()
 const qs = require("qs")
 const bodyParser = require('body-parser')
+const autoindex = require("express-autoindex")
 
 app.set("query parser",
     (str) => qs.parse(str)
@@ -14,59 +15,56 @@ app.use(cors())
 app.use("/cdn", express.static("images"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
+app.use("/", express.static("test"))
+app.use("/api", express.static("test"))
+app.use("/cdn", autoindex("images"))
 
 app.disable('x-powered-by');
 
 const port = process.env.PORT
 
-const url = `https://saturnrest.onrender.com`; 
-const interval = 30000;
-
-function reloadWebsite() {
-    fetch(url)
-        .then(response => {
-            console.log(`Reloaded at ${new Date().toISOString()}: Status Code ${response.status}`);
-        }, err => console.error(`Error reloading at ${new Date().toISOString()}:`, error.message))
-        .catch(error => {
-            console.error(`Error reloading at ${new Date().toISOString()}:`, error.message);
-        });
-}
-
-setInterval(reloadWebsite, interval);
-
-app.get("/", (req, res) => {
-    res.send("Hello World!")
-})
-
 app.get("/api/trips", (req, res) => {
+    res.set('Content-Type', 'application/json');
     if (req.query?.q) {
-        let from = ['depsite', 'arrsite', 'depdate']
+        let from = ['tr.departure_site', 'tr.arrival_site', 'tr.departure_date']
         let parsed = JSON.parse(req.query.q)
         let values = [parsed.from, parsed.to, parsed.date]
         if (values.some((el) => el == "")) return
-        qCommands.selectwhere("*", "trips", from, values).then(sel => {
+        qCommands.selectWhereJoin('', from, values).then(sel => {
             res.send(sel)
         })
     } else if (req.query?.ex) {
-        qCommands.select("*", `trips WHERE id NOT IN (${req.query.ex})`, 50).then((sel) => {
+        qCommands.selectWhereJoin(`WHERE tr.id NOT IN (${req.query.ex})`).then((sel) => {
             res.send(sel)
         })
     } else {
-        qCommands.select("*", "trips").then((sel) => {
+        qCommands.selectWhereJoin().then((sel) => {
             res.send(sel)
 
         })
     }
 })
+app.get("/api/terminals", (req, res) => {
+    res.set('Content-Type', 'application/json');
+    qCommands.select("*", "terminal").then((sel) => {
+        res.send(sel)
+    })
+})
+app.get("/api/buses", (req, res) => {
+    res.set('Content-Type', 'application/json');
+    qCommands.select("*", "bus").then((sel) => {
+        res.send(sel)
+    })
+})
 
 app.post("/api/trips", (req, res) => {
-    let q = [req.body.depsite, req.body.arrsite, req.body.departure, req.body.arrival, req.body.price, req.body.bus, req.body.bus, 5, req.body.depdate]
+    res.set('Content-Type', 'application/json');
+    let q = [req.body.departure_site, req.body.arrival_site, req.body.departure_time, req.body.arrival_time, req.body.price, req.body.departure_date, req.body.bus_id, req.body.terminal_id]
     let notInsert = false
-    console.log(q)
     for (let i = 0; i < q.length; i++) { if (q[i] == undefined || q[i] == '') { notInsert = true; break; }; }
     if (notInsert) return
-    qCommands.autoinsert(q, "trips").then(sel => {
-        qCommands.selectwhere("*", "trips", ["id"], [sel[0].id]).then((sel) => {
+    qCommands.autoinsert(q, "trip").then(sel => {
+        qCommands.selectwhere("*", "trip", ["id"], [sel[0].id]).then((sel) => {
             res.send(sel)
         })
 
@@ -74,7 +72,7 @@ app.post("/api/trips", (req, res) => {
 })
 
 app.delete("/api/trips", (req, res) => {
-    qCommands.truncate("trips").then(sel => {
+    qCommands.truncate("trip").then(sel => {
         res.send(sel)
     })
 })
@@ -116,7 +114,7 @@ inquirer.default.prompt(questions).then(answers => {
 
     }
     const query = `(${values.join(", ")})`
-    qCommands.autoinsert(query, "trips")
+    qCommands.autoinsert(query, "trip")
 });
 */
 app.listen(port, () => {

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<header>
+    <link rel=stylesheet href=https://cdn.jsdelivr.net/npm/pretty-print-json@3.0/dist/css/pretty-print-json.css>
+    <link rel="stylesheet" href="style.css">
+    <script src=https://cdn.jsdelivr.net/npm/pretty-print-json@3.0/dist/pretty-print-json.min.js></script>
+    <title>SaturnREST</title>
+</header>
+
+<body>
+    http://license-facility.gl.at.ply.gg:54624 API<br>
+    http://share-prescribed.gl.at.ply.gg:6732 HOST<br>
+    http://run-washington.gl.at.ply.gg:37670 HOST<br>
+    Format: no http://<br><br>
+    <a href="./localhost.zip">Localhost</a>
+    <a href="./nginx.zip">nginx</a>
+    <a href="./playit.zip">playit</a>
+    <a href="./saturnREST.zip">saturnREST</a>
+    <a href="./saturntp.7z">saturnTP</a>
+    <a href="./master.sql">DATABASE</a>
+    <a href="./proyecto.pptx">pptx</a><br><br><br>
+    <div onclick="toggleBackground()" style=" cursor: pointer; background-color: rgba(0, 0, 0, 0.336); height: 10%; position: fixed; bottom: 0px; right:0px; border-radius: 100%; user-select: none;">
+        <img src="moon.svg"  style="max-height: 100%; max-width: 100%; user-select: none;">
+    </div>
+    
+    <form onsubmit="callREST(event)">
+        <label for="host">REST API host:</label><br>
+        <input type="text" id="host" name="host" value="api.localhost"><br><br>
+        <label for="departure_site">Sitio de Salida:</label><br>
+        <input type="text" id="departure_site" name="departure_site" value=""><br>
+        <label for="arrival_site">Sitio de llegada:</label><br>
+        <input type="text" id="arrival_site" name="arrival_site" value=""><br>
+        <label for="departure_time">Hora de salida:</label><br>
+        <input type="time" id="departure_time" name="departure_time" value=""><br>
+        <label for="arrival_time">Hora de llegada:</label><br>
+        <input type="time" id="arrival_time" name="arrival_time" value=""><br>
+        <label for="price">Precio:</label><br>
+        <input type="text" id="price" name="price" value=""><br>
+        <label for="bus">Empresa:</label><br>
+        <select name="bus" id="bus">
+            <option value="aeroexp">Aeroexpresos Ejecutivos</option>
+            <option value="flamingo">Flamingo</option>
+        </select><br>
+        <label for="departure_date">Dia de Salida:</label><br>
+        <input type="date" id="departure_date" name="departure_date" value=""><br><br>
+        <input type="submit" value="Submit">
+    </form>
+    <br><br>
+    <form onsubmit="RESET(event)">
+        <label for="host">REST API host:</label><br>
+        <input type="text" id="host" name="host" value="api.localhost"><br><br>
+        <input type="submit" value="RESET DB">
+    </form>
+    <pre id=account class=json-container></pre>
+
+    <script>
+        let color = "white";
+        function toggleBackground()
+        {
+            colorops = color;
+            color = color == "white" ? "black" : "white";
+            document.body.style.backgroundColor = color;
+            document.body.style.color = colorops;
+        }
+        function callREST(event) {
+            event.preventDefault()
+
+            const form = event.target
+            const formData = new FormData(form)
+            const departure_site = formData.get("departure_site")
+            const arrival_site = formData.get("arrival_site")
+            const departure_time = formData.get("departure_time")
+            const arrival_time = formData.get("arrival_time")
+            const price = formData.get("price")
+            const bus = formData.get("bus")
+            const departure_date = formData.get("departure_date")
+            const url = formData.get("host")
+
+            let json = JSON.stringify({ departure_site: departure_site, arrival_site: arrival_site, departure_time: departure_time, arrival_time: arrival_time, price: price, departure_date: departure_date, bus_id: bus == "aeroexp" ? 1 : 2, terminal_id: bus == "aeroexp" ? 1 : 2 })
+
+            fetch(`http://${url}/api/trips`, {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: json
+            }).then(res => {
+                res.json().then(res => {
+                    document.getElementById("account").innerHTML = prettyPrintJson.toHtml(res);
+                })
+            })
+            
+        }
+        function RESET(event) {
+            event.preventDefault()
+            const form = event.target
+            const formData = new FormData(form)
+            const url = formData.get("host")
+
+            fetch(`http://${url}/api/trips`, {
+                method: "DELETE"
+            })
+        }
+    </script>
+</body>
+
+</html>
