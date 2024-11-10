@@ -1,6 +1,10 @@
 const { Pool } = require("pg")
-
-const pool = new Pool()
+const fs = require("fs")
+const pool = new Pool({
+    ssl: {
+        ca: fs.readFileSync("ca.pem").toString()
+    }
+})
 
 async function getcolumns(table) {
     let res = await pool.query(`SELECT column_name FROM information_schema.columns WHERE table_name = '${table}' AND column_name != 'id';`)
