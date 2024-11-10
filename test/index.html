@@ -78,7 +78,7 @@
 
             let json = JSON.stringify({ departure_site: departure_site, arrival_site: arrival_site, departure_time: departure_time, arrival_time: arrival_time, price: price, departure_date: departure_date, bus_id: bus == "aeroexp" ? 1 : 2, terminal_id: bus == "aeroexp" ? 1 : 2 })
 
-            fetch(`http://${url}/api/trips`, {
+            fetch(`${url}/api/trips`, {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
@@ -98,7 +98,7 @@
             const formData = new FormData(form)
             const url = formData.get("host")
 
-            fetch(`http://${url}/api/trips`, {
+            fetch(`${url}/api/trips`, {
                 method: "DELETE"
             })
         }
