@@ -59,7 +59,7 @@ app.get("/api/buses", (req, res) => {
 
 app.post("/api/trips", (req, res) => {
     res.set('Content-Type', 'application/json');
-    let q = [req.body.departure_site, req.body.arrival_site, req.body.departure_time, req.body.arrival_time, req.body.price, req.body.departure_date, req.body.terminal_id, req.body.bus_id]
+    let q = [req.body.bus_id, req.body.departure_date, req.body.terminal_id, req.body.departure_time, req.body.arrival_time, req.body.price, req.body.arrival_site, req.body.departure_site]
     let notInsert = false
     for (let i = 0; i < q.length; i++) { if (q[i] == undefined || q[i] == '') { notInsert = true; break; }; }
     if (notInsert) return
